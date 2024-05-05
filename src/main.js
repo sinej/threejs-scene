@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import {DoubleSide} from "three";
 
 const canvas = document.querySelector('#three-canvas');
 const renderer = new THREE.WebGLRenderer({
@@ -27,6 +29,9 @@ camera.position.set(-7, 3, 7);
 
 scene.add(camera); // camera 세팅
 
+// controls
+const controls = new OrbitControls(camera, renderer.domElement);
+
 // light
 const ambientLight = new THREE.AmbientLight('white', 1);
 
@@ -42,7 +47,10 @@ scene.add(directionLight);
 const boxMesh = new THREE.Mesh(
   new THREE.BoxGeometry(2,2,2), // geometry 모양
   // new THREE.MeshBasicMaterial({color: 'firebrick'})// material 재질
-  new THREE.MeshLambertMaterial({color: "firebrick"})
+  new THREE.MeshLambertMaterial({
+    color: "firebrick",
+    side: THREE.DoubleSide
+  })
 );
 
 boxMesh.position.set(0, 1, 0);
@@ -52,7 +60,10 @@ scene.add(boxMesh); // boxMesh 세팅
 const groundMesh = new THREE.Mesh(
   new THREE.PlaneGeometry(10, 10),// geometry
   // new THREE.MeshBasicMaterial({color : "#092e66"})
-  new THREE.MeshLambertMaterial({color: "#092e66"})
+  new THREE.MeshLambertMaterial({
+    color: "#092e66",
+    side: THREE.DoubleSide
+  })
 );
 
 // groundMesh.rotation.x = THREE.MathUtils.degToRad(-90);
@@ -64,4 +75,26 @@ scene.add(groundMesh);
 camera.lookAt(boxMesh.position);
 
 // draw
-renderer.render(scene, camera);
+
+let boxMeshY = 1;
+
+const clock = new THREE.Clock();
+
+function draw () {
+
+  const delta = clock.getDelta();
+  boxMesh.position.y += delta * 3;
+  if(boxMesh.position.y > 10) {
+    boxMesh.position.y = 1;
+  }
+
+  // boxMesh.position.y += 0.01;
+  controls.update();
+  renderer.render(scene, camera);
+  // 반복 호출
+  // window.requestAnimationFrame(draw);
+  renderer.setAnimationLoop(draw);
+}
+
+draw();
+
