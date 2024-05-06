@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshObject, Lamp, Vaccum } from './meshObject.js';
 import { KeyController } from './keyController.js';
+import { TouchController } from './touchController.js';
 import { Player } from './player.js';
 import * as CANNON from 'cannon-es';
 
@@ -35,6 +36,7 @@ scene.add(camera);
 const gltfLoader = new GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
 const keyController = new KeyController();
+const touchController = new TouchController();
 
 // Light
 const ambientLight = new THREE.AmbientLight('white', 1);
@@ -154,7 +156,7 @@ const lamp = new Lamp({
     lampLight.castShadow = true;
     lampLight.shadow.mapSize.width = 2048;
     lampLight.shadow.mapSize.height = 2048;
-    lampLight.position.set(0, 0.75, 0);
+    lampLight.position.y = 0.75;
     lamp.mesh.add(lampLight);
     lamp.light = lampLight;
   }
@@ -203,7 +205,25 @@ const player = new Player({
 
 cannonObjects.push(ground, floor, wall1, wall2, desk, lamp, roboticVaccum, magazine);
 
+// device
+let device;
+function setDevice() {
+  const htmlElem = document.querySelector('html');
+  if ('ontouchstart' in document.documentElement && window.innerWidth < 1300) {
+    device = 'mobile';
+    htmlElem.classList.add('touchevents');
+  } else {
+    device = 'desktop';
+    htmlElem.classList.add('no-touchevents');
+  }
+}
+
 function setLayout() {
+  setDevice();
+  if (device === 'mobile') {
+    touchController.setPosition();
+  }
+
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -228,6 +248,23 @@ function move() {
   }
 }
 
+function moveMobile() {
+  if (!touchController.walkTouch) return;
+
+  const cx = touchController.cx;
+  const cy = touchController.cy;
+  const yy = touchController.walkTouch.clientY - cy;
+  const xx = touchController.walkTouch.clientX - cx;
+
+  const angle = Math.atan2(-yy, xx);
+  const angle2 = Math.atan2(yy, xx);
+
+
+  player.walkMobile(delta, angle);
+
+  touchController.setAngleOfBar(angle2);
+}
+
 let movementX = 0;
 let movementY = 0;
 function updateMovementValue(event) {
@@ -241,10 +278,15 @@ const euler = new THREE.Euler(0, 0, 0, 'YXZ');
 const minPolarAngle = 0;
 const maxPolarAngle = Math.PI; // 180
 function moveCamera() {
+  let factor = delta * 50;
+  if (device === 'mobile') {
+    factor = delta * 0.3;
+  }
+
   // rotation
   euler.setFromQuaternion(camera.quaternion);
-  euler.y -= movementX;
-  euler.x -= movementY;
+  euler.y -= movementX * factor;
+  euler.x -= movementY * factor;
   euler.x = Math.max(Math.PI/2 - maxPolarAngle, Math.min(Math.PI/2 - minPolarAngle, euler.x));
 
   movementX -= movementX * 0.2;
@@ -304,7 +346,7 @@ function draw() {
     if (object.cannonBody) {
       object.mesh.position.copy(object.cannonBody.position);
       object.mesh.quaternion.copy(object.cannonBody.quaternion);
-      if(object.transparentMesh) {
+      if (object.transparentMesh) {
         object.transparentMesh.position.copy(object.cannonBody.position);
         object.transparentMesh.quaternion.copy(object.cannonBody.quaternion);
       }
@@ -316,32 +358,46 @@ function draw() {
     player.x = player.cannonBody.position.x;
     player.y = player.cannonBody.position.y;
     player.z = player.cannonBody.position.z;
-    move();
+
+    if (device === 'mobile') {
+      moveMobile();
+    } else {
+      move();
+    }
   }
 
   moveCamera();
   roboticVaccum.move();
+
   renderer.render(scene, camera);
   renderer.setAnimationLoop(draw);
 }
 
+setDevice();
+setMode('website');
 draw();
 
 // Events
 window.addEventListener('resize', setLayout);
 
 document.addEventListener('click', () => {
+  if (device === 'mobile') return;
   canvas.requestPointerLock();
 });
 
 canvas.addEventListener('click', event => {
-  // mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
-  // mouse.y = -(event.clientY / canvas.clientHeight * 2 - 1);
-  // checkIntersects();
-  mouse.x = 0;
-  mouse.y = 0;
-  if(document.body.dataset.mode === "game") {
+  if (device === 'mobile') {
+    // mobile
+    mouse.x = event.clientX / canvas.clientWidth * 2 - 1;
+    mouse.y = -(event.clientY / canvas.clientHeight * 2 - 1);
     checkIntersects();
+  } else {
+    // desktop
+    mouse.x = 0;
+    mouse.y = 0;
+    if (document.body.dataset.mode === 'game') {
+      checkIntersects();
+    }
   }
 });
 
@@ -352,3 +408,68 @@ document.addEventListener('pointerlockchange', () => {
     setMode('website');
   }
 });
+
+// touch
+const touchX = [];
+const touchY = [];
+window.addEventListener('touchstart', event => {
+  if (event.target === touchController.elem) return;
+  movementX = 0;
+  movementY = 0;
+
+  touchX[0] = event.targetTouches[0].clientX;
+  touchX[1] = event.targetTouches[0].clientX;
+  touchY[0] = event.targetTouches[0].clientY;
+  touchY[1] = event.targetTouches[0].clientY;
+});
+
+window.addEventListener('touchmove', event => {
+  if (event.target === touchController.elem) return;
+
+  movementX = 0;
+  movementY = 0;
+
+  touchX[0] = touchX[1];
+  touchX[1] = event.targetTouches[0].clientX;
+  touchY[0] = touchY[1];
+  touchY[1] = event.targetTouches[0].clientY;
+
+  movementX = touchX[1] - touchX[0];
+  movementY = touchY[1] - touchY[0];
+});
+
+window.addEventListener('touchend', event => {
+  if (event.target === touchController.elem) return;
+
+  movementX = 0;
+  movementY = 0;
+  touchX[0] = touchX[1] = 0;
+  touchY[0] = touchY[1] = 0;
+});
+
+window.addEventListener('gesturestart', event => {
+  event.preventDefault();
+  if(event.target === touchController.elem) return;
+  movementX = 0;
+  movementY = 0;
+  touchX[0] = touchX[1] = 0;
+  touchY[0] = touchY[1] = 0;
+})
+
+window.addEventListener('gestureChange', event => {
+  event.preventDefault();
+  if(event.target === touchController.elem) return;
+  movementX = 0;
+  movementY = 0;
+  touchX[0] = touchX[1] = 0;
+  touchY[0] = touchY[1] = 0;
+})
+
+window.addEventListener('gestureend', event => {
+  event.preventDefault();
+  if(event.target === touchController.elem) return;
+  movementX = 0;
+  movementY = 0;
+  touchX[0] = touchX[1] = 0;
+  touchY[0] = touchY[1] = 0;
+})

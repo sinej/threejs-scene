@@ -1,5 +1,8 @@
 body {
 	margin: 0;
+	overflow: hidden;
+	-webkit-user-select: none;
+	user-select: none;
 }
 #three-canvas {
 	position: absolute;
@@ -36,4 +39,40 @@ body {
 
 body[data-mode='game'] .target-marker {
 	display: block;
+}
+
+/* Mobile  */
+.no-touchevnets .mobile-controller {
+	display: none;
+}
+
+.mobile-controller {
+	position: fixed;
+	left: 30px;
+	bottom: 30px;
+	width: 151px;
+	height: 151px;
+	border-radius: 50%;
+	background: rgba(0,0,0,.1);
+}
+
+.mobile-controller::before {
+	content: '';
+	position: absolute;
+	left: 10px;
+	bottom: 10px;
+	width: 131px;
+	height: 131px;
+	border: 1px solid #FFF;
+	border-radius: 50%;
+}
+
+.mobile-controller-bar {
+	position: absolute;
+	left: 75px;
+	top: 10px;
+	width: 1px;
+	height: 66px;
+	background: #FFF;
+	transform-origin: bottom;
 }

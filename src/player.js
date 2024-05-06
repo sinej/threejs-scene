@@ -63,6 +63,14 @@ export class Player {
     }
   }
 
+  walkMobile(value, radian) {
+    const angle = this.rotationY + radian + MathUtils.degToRad(Math.PI/2);
+    this.x += Math.sin(angle) * value;
+    this.z += Math.cos(angle) * value;
+    this.cannonBody.position.x = this.x;
+    this.cannonBody.position.z = this.z;
+  }
+
   setCannonBody() {
     this.cannonBody = new Body({
       mass: this.mass,
