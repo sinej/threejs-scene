@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { MeshObject } from "./meshObject";
 
 // renderer
 const canvas = document.querySelector('#three-canvas');
@@ -37,28 +38,53 @@ pointLight.position.y = 10;
 
 scene.add(ambientLight, pointLight);
 
+
 // mesh
-const groundMesh = new THREE.Mesh(
-  new THREE.BoxGeometry(50, 0.1, 50),
-  new THREE.MeshLambertMaterial({
-    color: 'red',
-    side: THREE.DoubleSide
-  })
-);
+const ground = new MeshObject({
+  scene,
+  name: 'ground',
+  width: 50,
+  height: 0.1,
+  depth: 50,
+  color: '#092e66',
+  y: -0.05,
+});
 
-groundMesh.receiveShadow = true;
-groundMesh.position.y = -0.05
+const floor = new MeshObject({
+  scene,
+  name: 'floor',
+  width: 5,
+  height: 0.4,
+  depth: 5,
+});
 
-scene.add(groundMesh);
+const wall1 = new MeshObject({
+  scene,
+  name: 'wall1',
+  width: 5,
+  height: 3,
+  depth: 0.2,
+  z: -2.4
+});
+
+const wall2 = new MeshObject({
+  scene,
+  name: 'wall2',
+  width: 0.2,
+  height: 3,
+  depth: 4.8,
+  x: 2.4,
+  z: 0.1,
+});
 
 // 방 바닥 만들기
-const floorMesh = new THREE.Mesh(
-  new THREE.BoxGeometry(5, 0.4, 5),
-  new THREE.MeshLambertMaterial()
-);
-floorMesh.castShadow = true;
-floorMesh.position.y = 0.2;
-scene.add(floorMesh);
+// const floorMesh = new THREE.Mesh(
+//   new THREE.BoxGeometry(5, 0.4, 5),
+//   new THREE.MeshLambertMaterial()
+// );
+// floorMesh.castShadow = true;
+// floorMesh.position.y = 0.2;
+// scene.add(floorMesh);
 
 // draw
 const clock = new THREE.Clock();
