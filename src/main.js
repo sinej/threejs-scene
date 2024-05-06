@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { MeshObject } from "./meshObject";
-
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 // renderer
 const canvas = document.querySelector('#three-canvas');
 const renderer = new THREE.WebGLRenderer({
@@ -28,6 +28,42 @@ camera.position.set(0, 3, 7);
 scene.add(camera);
 
 const controls = new OrbitControls(camera, renderer.domElement);
+const loader = new GLTFLoader();
+
+
+const desk = new MeshObject({
+  scene,
+  loader: loader,
+  name: 'desk',
+  width: 1.8,
+  height: 0.8,
+  depth: 0.75,
+  x: 1.2,
+  z: -1.9,
+  modelSrc: '/models/desk.glb',
+});
+
+const lamp = new MeshObject({
+  scene,
+  loader: loader,
+  name: 'lamp',
+  width: 0.5,
+  height: 1.8,
+  depth: 0.5,
+  z: -1.7,
+  modelSrc: '/models/lamp.glb',
+});
+
+const roboticVaccum = new MeshObject({
+  scene,
+  loader: loader,
+  name: 'roboticVaccum',
+  width: 0.5,
+  height: 0.1,
+  depth: 0.5,
+  x: -1,
+  modelSrc: '/models/vaccum.glb',
+});
 
 // light
 const ambientLight = new THREE.AmbientLight('white', 1);
@@ -48,6 +84,7 @@ const ground = new MeshObject({
   depth: 50,
   color: '#092e66',
   y: -0.05,
+  differenceY: "0",
 });
 
 const floor = new MeshObject({
@@ -56,6 +93,7 @@ const floor = new MeshObject({
   width: 5,
   height: 0.4,
   depth: 5,
+  differenceY: "0"
 });
 
 const wall1 = new MeshObject({
