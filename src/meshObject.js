@@ -163,3 +163,28 @@ export class Lamp extends MeshObject {
     }
   }
 }
+
+
+export class Vaccum extends MeshObject {
+  constructor(info) {
+    super(info);
+    this.powerOn = false;
+    this.r = 0;
+    this.angle = 0;
+    this.originX = this.x;
+    this.originZ = this.z;
+  }
+
+  togglePower() {
+    this.powerOn = !this.powerOn;
+  }
+
+  move() {
+    if(this.powerOn) {
+      this.cannonBody.position.x = this.originX + Math.cos(this.angle) * this.r;
+      this.cannonBody.position.z = this.originX + Math.sin(this.angle) * this.r;
+      this.angle += 0.002;
+      this.r = Math.sin(this.angle * 2);
+    }
+  }
+}
