@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 // import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshObject } from './meshObject.js';
+import { MeshObject, Lamp } from './meshObject.js';
 import { KeyController } from './keyController.js';
 import { Player } from './player.js';
 import * as CANNON from 'cannon-es';
@@ -135,7 +135,7 @@ const desk = new MeshObject({
   modelSrc: '/models/desk.glb'
 });
 
-const lamp = new MeshObject({
+const lamp = new Lamp({
   scene,
   cannonWorld,
   cannonMaterial: defaultCannonMaterial,
@@ -148,7 +148,16 @@ const lamp = new MeshObject({
   height: 1.8,
   depth: 0.5,
   z: -1.7,
-  modelSrc: '/models/lamp.glb'
+  modelSrc: '/models/lamp.glb',
+  callback: () => {
+    const lampLight = new THREE.PointLight('#eac6ab', 0, 50);
+    lampLight.castShadow = true;
+    lampLight.shadow.mapSize.width = 2048;
+    lampLight.shadow.mapSize.height = 2048;
+    lampLight.position.set(0, 0.75, 0);
+    lamp.mesh.add(lampLight);
+    lamp.light = lampLight;
+  }
 });
 
 const roboticVaccum = new MeshObject({
@@ -272,7 +281,7 @@ function checkIntersects() {
   for (const item of intersects) {
     console.log(item.object.name);
     if (item.object.name === 'lamp') {
-      //
+      lamp.togglePower();
       break;
     } else if (item.object.name === 'roboticVaccum') {
       //
