@@ -42,7 +42,7 @@ body[data-mode='game'] .target-marker {
 }
 
 /* Mobile  */
-.no-touchevnets .mobile-controller {
+.no-touchevents .mobile-controller {
 	display: none;
 }
 
